@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Data Analytics Tool</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background: #f4f7fb;
+      color: #222;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #1e3a8a;
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .card h2 {
+      margin-bottom: 15px;
+      color: #2563eb;
+      font-size: 20px;
+    }
+
+    input, button, select {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
+
+    .result {
+      margin-top: 10px;
+      font-weight: bold;
+      color: #0f172a;
+    }
+
+    canvas {
+      max-height: 250px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    table, th, td {
+      border: 1px solid #ccc;
+    }
+
+    th, td {
+      padding: 8px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Advanced Data Analytics Tool</h1>
+
+<div class="dashboard">
+
+  <!-- Feature 1 -->
+  <div class="card">
+    <h2>1. Dataset Input</h2>
+    <input type="text" id="dataset" placeholder="Enter numbers separated by commas">
+    <button onclick="loadData()">Load Data</button>
+    <div class="result" id="dataResult"></div>
+  </div>
+
+  <!-- Feature 2 -->
+  <div class="card">
+    <h2>2. Mean Calculator</h2>
+    <button onclick="calculateMean()">Calculate Mean</button>
+    <div class="result" id="meanResult"></div>
+  </div>
+
+  <!-- Feature 3 -->
+  <div class="card">
+    <h2>3. Median Calculator</h2>
+    <button onclick="calculateMedian()">Calculate Median</button>
+    <div class="result" id="medianResult"></div>
+  </div>
+
+  <!-- Feature 4 -->
+  <div class="card">
+    <h2>4. Mode Finder</h2>
+    <button onclick="calculateMode()">Find Mode</button>
+    <div class="result" id="modeResult"></div>
+  </div>
+
+  <!-- Feature 5 -->
+  <div class="card">
+    <h2>5. Min & Max</h2>
+    <button onclick="calculateMinMax()">Get Min & Max</button>
+    <div class="result" id="minMaxResult"></div>
+  </div>
+
+  <!-- Feature 6 -->
+  <div class="card">
+    <h2>6. Standard Deviation</h2>
+    <button onclick="calculateStdDev()">Calculate</button>
+    <div class="result" id="stdResult"></div>
+  </div>
+
+  <!-- Feature 7 -->
+  <div class="card">
+    <h2>7. Data Sorting</h2>
+    <button onclick="sortAscending()">Sort Ascending</button>
+    <button onclick="sortDescending()">Sort Descending</button>
+    <div class="result" id="sortResult"></div>
+  </div>
+
+  <!-- Feature 8 -->
+  <div class="card">
+    <h2>8. Search Value</h2>
+    <input type="number" id="searchValue" placeholder="Enter value to search">
+    <button onclick="searchValue()">Search</button>
+    <div class="result" id="searchResult"></div>
+  </div>
+
+  <!-- Feature 9 -->
+  <div class="card">
+    <h2>9. Data Visualization</h2>
+    <canvas id="barChart"></canvas>
+  </div>
+
+  <!-- Feature 10 -->
+  <div class="card">
+    <h2>10. Data Table Export</h2>
+    <button onclick="generateTable()">Generate Table</button>
+    <button onclick="downloadCSV()">Download CSV</button>
+    <div id="tableContainer"></div>
+  </div>
+
+</div>
+
+<script>
+  let data = [];
+  let chart;
+
+  function loadData() {
+    const input = document.getElementById('dataset').value;
+    data = input.split(',').map(num => Number(num.trim())).filter(num => !isNaN(num));
+
+    document.getElementById('dataResult').innerText = `Loaded ${data.length} values`;
+    renderChart();
+  }
+
+  function calculateMean() {
+    if(data.length === 0) return;
+    const mean = data.reduce((a,b) => a+b, 0) / data.length;
+    document.getElementById('meanResult').innerText = `Mean: ${mean.toFixed(2)}`;
+  }
+
+  function calculateMedian() {
+    if(data.length === 0) return;
+    const sorted = [...data].sort((a,b)=>a-b);
+    const middle = Math.floor(sorted.length/2);
+
+    let median;
+    if(sorted.length % 2 === 0) {
+      median = (sorted[middle-1] + sorted[middle]) / 2;
+    } else {
+      median = sorted[middle];
+    }
+
+    document.getElementById('medianResult').innerText = `Median: ${median}`;
+  }
+
+  function calculateMode() {
+    if(data.length === 0) return;
+
+    const frequency = {};
+    let maxFreq = 0;
+    let mode = [];
+
+    data.forEach(num => {
+      frequency[num] = (frequency[num] || 0) + 1;
+      if(frequency[num] > maxFreq) maxFreq = frequency[num];
+    });
+
+    for(let key in frequency) {
+      if(frequency[key] === maxFreq) {
+        mode.push(key);
+      }
+    }
+
+    document.getElementById('modeResult').innerText = `Mode: ${mode.join(', ')}`;
+  }
+
+  function calculateMinMax() {
+    if(data.length === 0) return;
+    const min = Math.min(...data);
+    const max = Math.max(...data);
+
+    document.getElementById('minMaxResult').innerText = `Min: ${min}, Max: ${max}`;
+  }
+
+  function calculateStdDev() {
+    if(data.length === 0) return;
+
+    const mean = data.reduce((a,b)=>a+b,0)/data.length;
+    const variance = data.reduce((sum, value)=>sum + Math.pow(value-mean,2),0)/data.length;
+    const std = Math.sqrt(variance);
+
+    document.getElementById('stdResult').innerText = `Standard Deviation: ${std.toFixed(2)}`;
+  }
+
+  function sortAscending() {
+    const sorted = [...data].sort((a,b)=>a-b);
+    document.getElementById('sortResult').innerText = `Ascending: ${sorted.join(', ')}`;
+  }
+
+  function sortDescending() {
+    const sorted = [...data].sort((a,b)=>b-a);
+    document.getElementById('sortResult').innerText = `Descending: ${sorted.join(', ')}`;
+  }
+
+  function searchValue() {
+    const value = Number(document.getElementById('searchValue').value);
+    const found = data.includes(value);
+
+    document.getElementById('searchResult').innerText = found
+      ? `${value} exists in dataset`
+      : `${value} not found`;
+  }
+
+  function renderChart() {
+    const ctx = document.getElementById('barChart').getContext('2d');
+
+    if(chart) chart.destroy();
+
+    chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: data.map((_, i)=>`Item ${i+1}`),
+        datasets: [{
+          label: 'Dataset Values',
+          data: data,
+          backgroundColor: 'rgba(37,99,235,0.6)',
+          borderColor: 'rgba(37,99,235,1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false
+      }
+    });
+  }
+
+  function generateTable() {
+    let html = '<table><tr><th>Index</th><th>Value</th></tr>';
+
+    data.forEach((value, index) => {
+      html += `<tr><td>${index+1}</td><td>${value}</td></tr>`;
+    });
+
+    html += '</table>';
+
+    document.getElementById('tableContainer').innerHTML = html;
+  }
+
+  function downloadCSV() {
+    let csv = 'Index,Value\n';
+
+    data.forEach((value, index) => {
+      csv += `${index+1},${value}\n`;
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'dataset.csv';
+    a.click();
+
+    window.URL.revokeObjectURL(url);
+  }
+</script>
+
+</body>
+</html>
